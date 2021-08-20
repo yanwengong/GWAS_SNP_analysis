@@ -16,7 +16,7 @@ if __name__== '__main__':
     registered_model = Model_Register(config.model_name)
 
     # 2\ Read bed and snp file, and generate the fasta
-    get_fasta = GetFasta(config.peak_snp_bed, config.ref_fasta)
+    get_fasta = GetFasta(config.peak_snp_bed, config.ref_fasta, config.result_path)
     combined = get_fasta.read_bed()
     snp_pos = get_fasta.compute_pos_index(combined)
     wt_fa, mutant_fa = get_fasta.get_fasta(snp_pos, combined)

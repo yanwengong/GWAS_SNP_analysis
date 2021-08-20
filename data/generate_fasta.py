@@ -3,12 +3,14 @@ from pybedtools import BedTool
 import pandas as pd
 import sys
 import numpy as np
+import os
 
 
 class GetFasta():
-    def __init__(self, peak_snp_bed, ref_fasta):
+    def __init__(self, peak_snp_bed, ref_fasta, result_path):
         self.peak_snp_bed = peak_snp_bed
         self.ref_fasta = ref_fasta
+        self.result_path = result_path
 
     # read in the bed
     def read_bed(self):
@@ -62,6 +64,11 @@ class GetFasta():
             snp_index_list.append(i)
 
         mutant_peak_fa_list = []
+        # TODO report which one is effect, generate a new file
+        # 0 means WT is effect allele, 1 means mutant is effect allele,
+        # 2 means Given WT nucleic acid does not match with the one retrieve in fasta'
+        effect_allele_index = []
+
         for i in range(len(peak_fa_list)):
             fa = peak_fa_list[i]
             snp_index = snp_index_list[i]
@@ -72,18 +79,24 @@ class GetFasta():
                 fa[snp_index] = combined.iloc[i, 8].upper()
                 mutant_fa = ''.join(fa)
                 mutant_peak_fa_list.append(mutant_fa)
+                effect_allele_index.append(0)
             ## WT is Allele
             elif fa[snp_index] == combined.iloc[i, 8]:
                 fa = list(fa)
                 fa[snp_index] = combined.iloc[i, 7].upper()
                 mutant_fa = ''.join(fa)
                 mutant_peak_fa_list.append(mutant_fa)
+                effect_allele_index.append(1)
 
             else:
                 print(fa)
                 print(fa[snp_index])
                 print(combined.iloc[i, :])
+                effect_allele_index.append(2)
 
                 raise ValueError('Given WT nucleic acid does not match with the one retrieve in fasta')
 
+        pd.DataFrame(np.array(effect_allele_index)).to_csv(
+            os.path.join(self.result_path, "effect_allele_index.csv"), header = False, index = True
+        )
         return mutant_peak_fa_list
